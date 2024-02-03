@@ -1,43 +1,35 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class mCameraController : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
-    [System.Serializable]
-    struct Sensivity
-    {
-        public float x;
-        public float y;
-        public float scale;
-        public Sensivity(float x, float y, float s)
-        {
-            this.x = x; this.y = y; this.scale = s;
-        }
-    }
+    [SerializeField] float sensivity_x = 1;
+    [SerializeField] float sensivity_y = 1;
 
-    [SerializeField] Sensivity sensivity = new Sensivity(1, 1, 100);
-    [SerializeField] float smooth = .125f;
-    [SerializeField] float maxYaw = 80f;
     [SerializeField] Transform body;
-
     float rotation = 0;
-    float s_x;
 
+    PlayerController p;
 
-    private void Start()
-    {
+    private void Start() {
+        p = body.GetComponent<PlayerController>();
+
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    private void Update()
-    {
-        float x = Input.GetAxis("Mouse X") * sensivity.x * sensivity.scale * Time.deltaTime;
-        float y = Input.GetAxis("Mouse Y") * sensivity.y * sensivity.scale * Time.deltaTime;
+    private void Update() {
+        // Input Axis X are scaled by how much we moved the mouse, should not be scaled by time.deltaTime
+        float x = Input.GetAxis("Mouse X") * sensivity_x; 
+        float y = Input.GetAxis("Mouse Y") * sensivity_y;
 
         rotation -= y;
-        rotation = Mathf.Clamp(rotation, -Mathf.Abs(maxYaw), Mathf.Abs(maxYaw));
+        rotation = Mathf.Clamp(rotation, -80, 80);
 
-        transform.localRotation = Quaternion.Lerp(transform.localRotation, Quaternion.Euler(rotation, 0, 0), Time.deltaTime / smooth);
-        s_x = Mathf.Lerp(s_x, x, Time.deltaTime / smooth);
-        body.Rotate(body.transform.up * s_x);
+        if(p.playerState == PlayerController.PlayerState.Playing)
+        {
+            transform.localRotation = Quaternion.Euler(rotation, 0, 0);
+            body.Rotate(Vector3.up * x);
+        }
     }
 }
